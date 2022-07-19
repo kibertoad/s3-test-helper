@@ -12,25 +12,35 @@ export type FileDefinition = {
   key: string
 }
 
+export type Logger = {
+  error: (msg: string) => void
+}
+
+const dummyLogger: Logger = {
+  error: () => {},
+}
+
 export class S3TestHelper {
   private readonly s3Client: S3Client
   private readonly bucketsToCleanup: Set<string>
   private readonly filesToCleanup: FileDefinition[]
   private readonly concurrentCleanupThreads: number
+  private readonly logger: Logger
 
-  constructor(s3Client: S3Client, concurrentCleanupThreads = 5) {
+  constructor(s3Client: S3Client, concurrentCleanupThreads = 5, logger: Logger = dummyLogger) {
     this.s3Client = s3Client
     this.bucketsToCleanup = new Set()
     this.filesToCleanup = []
     this.concurrentCleanupThreads = concurrentCleanupThreads
+    this.logger = logger
   }
 
   async createBucket(bucket: string) {
     const createBucketCommand = new CreateBucketCommand({ Bucket: bucket })
     try {
       await this.s3Client.send(createBucketCommand)
-    } catch {
-      // If bucket already exists, fine
+    } catch (err: any) {
+      this.logger.error(`Error while creating bucket: ${err.message}`)
     }
     this.bucketsToCleanup.add(bucket)
   }
@@ -40,8 +50,8 @@ export class S3TestHelper {
     const deleteBucketCommand = new DeleteBucketCommand({ Bucket: bucket })
     try {
       await this.s3Client.send(deleteBucketCommand)
-    } catch {
-      // If bucket doesn't exist already, fine
+    } catch (err: any) {
+      this.logger.error(`Error while deleting bucket: ${err.message}`)
     }
   }
 
@@ -53,17 +63,23 @@ export class S3TestHelper {
 
   async emptyBucket(bucket: string) {
     const listFilesCommand = new ListObjectsCommand({ Bucket: bucket })
-    const filesList = await this.s3Client.send(listFilesCommand)
-    const fileEntries = Array.from(filesList.Contents ?? [])
+    try {
+      const filesList = await this.s3Client.send(listFilesCommand)
+      const fileEntries = Array.from(filesList.Contents ?? [])
 
-    const promisePool = new PromisePool(fileEntries).withConcurrency(this.concurrentCleanupThreads)
-    await promisePool.process((file) => {
-      const deleteFileCommand = new DeleteObjectCommand({
-        Bucket: bucket,
-        Key: file.Key,
+      const promisePool = new PromisePool(fileEntries).withConcurrency(
+        this.concurrentCleanupThreads,
+      )
+      await promisePool.process((file) => {
+        const deleteFileCommand = new DeleteObjectCommand({
+          Bucket: bucket,
+          Key: file.Key,
+        })
+        return this.s3Client.send(deleteFileCommand)
       })
-      return this.s3Client.send(deleteFileCommand)
-    })
+    } catch {
+      //if bucket does not exist, do nothing
+    }
   }
 
   registerFileForCleanup(fileDefinition: FileDefinition) {
@@ -79,7 +95,9 @@ export class S3TestHelper {
         Bucket: fileDefinition.bucket,
         Key: fileDefinition.key,
       })
-      return this.s3Client.send(deleteFileCommand).catch(() => {})
+      return this.s3Client.send(deleteFileCommand).catch((err) => {
+        this.logger.error(`Error while deleting file: ${err.message}`)
+      })
     })
 
     const promisePoolBucket = new PromisePool(Array.from(this.bucketsToCleanup)).withConcurrency(
@@ -89,7 +107,9 @@ export class S3TestHelper {
       const deleteBucketCommand = new DeleteBucketCommand({
         Bucket: bucket,
       })
-      return this.s3Client.send(deleteBucketCommand).catch(() => {})
+      return this.s3Client.send(deleteBucketCommand).catch((err) => {
+        this.logger.error(`Error while deleting bucket: ${err.message}`)
+      })
     })
   }
 }

@@ -1,4 +1,4 @@
-import { S3TestHelper } from '../lib/s3TestHelper'
+import { Logger, S3TestHelper } from '../lib/s3TestHelper'
 import {
   CreateBucketCommand,
   ListBucketsCommand,
@@ -16,10 +16,28 @@ const s3Client = new S3Client({
   },
 })
 
+class TestLogger implements Logger {
+  public readonly errors: string[] = []
+  public readonly logs: string[] = []
+
+  error(msg: string) {
+    console.error(msg)
+    this.errors.push(msg)
+  }
+}
+
 describe('s3TestHelper', function () {
   let s3TestHelper: S3TestHelper
+  let logger: TestLogger
   beforeEach(function () {
-    s3TestHelper = new S3TestHelper(s3Client)
+    logger = new TestLogger()
+    s3TestHelper = new S3TestHelper(s3Client, 5, logger)
+  })
+
+  it('helper can be instantiated with default values and use default logger', async function () {
+    const helper = new S3TestHelper(s3Client)
+    await helper.createBucket('abc')
+    await helper.createBucket('abc')
   })
 
   it('createBucket cleans up after itself', async function () {
@@ -33,7 +51,8 @@ describe('s3TestHelper', function () {
 
     await s3TestHelper.cleanup()
 
-    const responseListBuckets2 = await s3Client.send(listBucketsCommand)
+    const listBucketsCommand2 = new ListBucketsCommand({})
+    const responseListBuckets2 = await s3Client.send(listBucketsCommand2)
 
     expect(responseListBuckets2.Buckets?.length).to.eq(0)
   })
@@ -68,6 +87,28 @@ describe('s3TestHelper', function () {
     expect(filesList2.length).to.eq(0)
 
     await s3TestHelper.deleteBucket('abc')
+  })
+
+  it('logs errors correctly', async function () {
+    await s3TestHelper.createBucket('abc')
+    await s3TestHelper.createBucket('abc')
+
+    expect(logger.errors.length).to.eq(1)
+
+    await s3TestHelper.deleteBucket('abc')
+    await s3TestHelper.deleteBucket('abc')
+
+    expect(logger.errors.length).to.eq(2)
+
+    await s3TestHelper.createBucket('abc')
+    await s3TestHelper.deleteBucket('abc')
+    s3TestHelper.registerFileForCleanup({
+      bucket: 'abc',
+      key: 'dummyKey',
+    })
+
+    await s3TestHelper.cleanup()
+    expect(logger.errors.length).to.eq(4)
   })
 
   it('emptying bucket deletes its files', async function () {
