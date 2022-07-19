@@ -1,0 +1,50 @@
+name: ci
+
+on:
+  pull_request:
+    paths-ignore:
+      - '*.md'
+
+jobs:
+  build:
+    runs-on: ${{ matrix.os }}
+
+    strategy:
+      matrix:
+        node-version: [14, 16, 18]
+        os: [ubuntu-latest]
+
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Use Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: ${{ matrix.node-version }}
+
+      - name: Install
+        run: |
+          npm install
+
+      - name: Start Docker
+        run: |
+          docker compose up -d localstack
+
+      - name: Run Tests
+        run: |
+          npm run test:ci
+
+      - name: Stop Docker
+        run: |
+          npm run aws:local:stop
+
+  automerge:
+    needs: build
+    runs-on: ubuntu-latest
+    permissions:
+      pull-requests: write
+      contents: write
+    steps:
+      - uses: fastify/github-action-merge-dependabot@v3
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
