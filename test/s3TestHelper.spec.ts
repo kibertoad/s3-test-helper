@@ -38,7 +38,7 @@ describe('s3TestHelper', function () {
     })
   })
 
-  after(function() {
+  after(function () {
     s3Client.destroy()
   })
 
