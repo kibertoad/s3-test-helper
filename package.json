@@ -1,6 +1,16 @@
 {
   "name": "s3-test-helper",
   "version": "1.0.0",
+  "license": "MIT",
+  "description": "Test helper for managing and cleaning up your S3 buckets in tests ",
+  "maintainers": [
+    {
+      "name": "Igor Savin",
+      "email": "kibertoad@gmail.com"
+    }
+  ],
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
   "scripts": {
     "build": "tsc",
     "test": "ts-mocha test/*.ts",
@@ -37,6 +47,21 @@
   "engines": {
     "node": ">=14"
   },
+  "homepage": "https://github.com/kibertoad/s3-test-helper",
+  "repository": {
+    "type": "git",
+    "url": "git://github.com/kibertoad/s3-test-helper.git"
+  },
+  "keywords": [
+    "s3",
+    "test",
+    "testing",
+    "clean",
+    "cleanup",
+    "utils",
+    "files",
+    "buckets"
+  ],
   "files": [
     "README.md",
     "LICENSE",
