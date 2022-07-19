@@ -32,7 +32,10 @@ describe('s3TestHelper', function () {
   let logger: TestLogger
   beforeEach(function () {
     logger = new TestLogger()
-    s3TestHelper = new S3TestHelper(s3Client, 5, logger)
+    s3TestHelper = new S3TestHelper(s3Client, {
+      concurrentCleanupThreads: 5,
+      logger,
+    })
   })
 
   it('helper can be instantiated with default values and use default logger', async function () {
@@ -40,6 +43,14 @@ describe('s3TestHelper', function () {
     await helper.createBucket('abc')
     await helper.createBucket('abc')
     await helper.cleanup()
+  })
+
+  it('bucket needs to be specified either on a bucket or in a helper', async function () {
+    expect(() =>
+      s3TestHelper.registerFileForCleanup({
+        key: 'dummy',
+      }),
+    ).to.throw(/Bucket needs to be specified/)
   })
 
   it('createBucket cleans up after itself', async function () {
@@ -89,6 +100,38 @@ describe('s3TestHelper', function () {
     expect(filesList2.length).to.eq(0)
 
     await s3TestHelper.deleteBucket('abc')
+  })
+
+  it('registered files get cleaned up using helper bucket', async function () {
+    const helper = new S3TestHelper(s3Client, { bucket: 'def' })
+    const createBucketCommand = new CreateBucketCommand({ Bucket: 'def' })
+    try {
+      await s3Client.send(createBucketCommand)
+    } catch {
+      // If bucket already exists, fine
+    }
+
+    const createObjectCommand = new PutObjectCommand({
+      Bucket: 'def',
+      Key: 'dummyKey2',
+      Body: JSON.stringify({ id: 1 }),
+    })
+
+    await s3Client.send(createObjectCommand)
+
+    const filesList = await helper.listBucketFiles('def')
+    expect(filesList.length).to.eq(1)
+    expect(filesList[0].Key).to.eq('dummyKey2')
+
+    helper.registerFileForCleanup({
+      key: 'dummyKey2',
+    })
+    await helper.cleanup()
+
+    const filesList2 = await helper.listBucketFiles('def')
+    expect(filesList2.length).to.eq(0)
+
+    await helper.deleteBucket('def')
   })
 
   it('logs errors correctly', async function () {
