@@ -28,7 +28,7 @@ jobs:
 
       - name: Start Docker
         run: |
-          docker compose up localstack
+          docker compose up -d localstack
 
       - name: Run Tests
         run: |
