@@ -1,2 +1,6 @@
 # s3-test-helper
-Test helper for managing and cleaning up your S3 buckets in tests
+
+Test utilities for working with S3 within integration tests
+
+## Getting Started
+

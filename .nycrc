@@ -1,0 +1,18 @@
+{
+  "exclude": [
+    "coverage/**",
+    "test/**"
+  ],
+  "reporter": [
+    "text",
+    "lcov"
+  ],
+  "check-coverage": true,
+  "lines": 100,
+  "branches": "100",
+  "statements": "100",
+  "temp-directory": "coverage/tmp",
+  "omit-relative": false,
+  "resolve": "./lib",
+  "wrapper-length": 0
+}
