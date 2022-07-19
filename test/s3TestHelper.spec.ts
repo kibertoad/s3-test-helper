@@ -1,5 +1,10 @@
 import { S3TestHelper } from '../lib/s3TestHelper'
-import { Bucket, CreateBucketCommand, ListBucketsCommand, PutObjectCommand, S3Client } from "@aws-sdk/client-s3";
+import {
+  CreateBucketCommand,
+  ListBucketsCommand,
+  PutObjectCommand,
+  S3Client,
+} from '@aws-sdk/client-s3'
 import { expect } from 'chai'
 
 const s3Client = new S3Client({
@@ -11,13 +16,13 @@ const s3Client = new S3Client({
   },
 })
 
-describe('s3TestHelper', () => {
+describe('s3TestHelper', function () {
   let s3TestHelper: S3TestHelper
-  beforeEach(() => {
+  beforeEach(function () {
     s3TestHelper = new S3TestHelper(s3Client)
   })
 
-  it('createBucket cleans up after itself', async () => {
+  it('createBucket cleans up after itself', async function () {
     await s3TestHelper.createBucket('abc')
 
     const listBucketsCommand = new ListBucketsCommand({})
@@ -33,7 +38,7 @@ describe('s3TestHelper', () => {
     expect(responseListBuckets2.Buckets?.length).to.eq(0)
   })
 
-  it('registered files get cleaned up', async () => {
+  it('registered files get cleaned up', async function () {
     const createBucketCommand = new CreateBucketCommand({ Bucket: 'abc' })
     try {
       await s3Client.send(createBucketCommand)
@@ -55,7 +60,7 @@ describe('s3TestHelper', () => {
 
     s3TestHelper.registerFileForCleanup({
       bucket: 'abc',
-      key: 'dummyKey'
+      key: 'dummyKey',
     })
     await s3TestHelper.cleanup()
 
@@ -65,7 +70,7 @@ describe('s3TestHelper', () => {
     await s3TestHelper.deleteBucket('abc')
   })
 
-  it('emptying bucket deletes its files', async () => {
+  it('emptying bucket deletes its files', async function () {
     await s3TestHelper.createBucket('abc')
     const createObjectCommand = new PutObjectCommand({
       Bucket: 'abc',

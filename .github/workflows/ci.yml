@@ -30,9 +30,18 @@ jobs:
       - name: Install
         run: |
           npm install
+
+      - name: Start Docker
+        run: |
+          npm run aws:local:start
+
       - name: Run Tests
         run: |
           npm run test:ci
+
+      - name: Stop Docker
+        run: |
+          npm run aws:local:stop
 
   automerge:
     needs: build

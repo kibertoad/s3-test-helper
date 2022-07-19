@@ -1,12 +1,6 @@
 {
-  "exclude": [
-    "coverage/**",
-    "test/**"
-  ],
-  "reporter": [
-    "text",
-    "lcov"
-  ],
+  "exclude": ["coverage/**", "test/**"],
+  "reporter": ["text", "lcov"],
   "check-coverage": true,
   "lines": 100,
   "branches": "100",
