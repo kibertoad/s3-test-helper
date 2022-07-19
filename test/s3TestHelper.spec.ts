@@ -75,6 +75,24 @@ describe('s3TestHelper', function () {
     expect(responseListBuckets2.Buckets?.length).to.eq(0)
   })
 
+  it('createBucket cleans up after itself even if there are hanging files left', async function () {
+    await s3TestHelper.createBucket('abc')
+
+    const createObjectCommand = new PutObjectCommand({
+      Bucket: 'abc',
+      Key: 'dummyKey',
+      Body: JSON.stringify({ id: 1 }),
+    })
+    await s3Client.send(createObjectCommand)
+
+    await s3TestHelper.cleanup()
+
+    const listBucketsCommand = new ListBucketsCommand({})
+    const responseListBuckets = await s3Client.send(listBucketsCommand)
+
+    expect(responseListBuckets.Buckets?.length).to.eq(0)
+  })
+
   it('registered files get cleaned up', async function () {
     const createBucketCommand = new CreateBucketCommand({ Bucket: 'abc' })
     try {
