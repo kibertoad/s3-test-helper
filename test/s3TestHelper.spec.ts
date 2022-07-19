@@ -33,12 +33,17 @@ describe('s3TestHelper', function () {
   beforeEach(function () {
     logger = new TestLogger()
     s3TestHelper = new S3TestHelper(s3Client, {
-      concurrentCleanupThreads: 5,
+      concurrentCleanupThreads: 3,
       logger,
     })
   })
 
+  after(function() {
+    s3Client.destroy()
+  })
+
   it('helper can be instantiated with default values and use default logger', async function () {
+    this.timeout(4000)
     const helper = new S3TestHelper(s3Client)
     await helper.createBucket('abc')
     await helper.createBucket('abc')
