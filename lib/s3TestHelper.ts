@@ -79,7 +79,7 @@ export class S3TestHelper {
         Bucket: fileDefinition.bucket,
         Key: fileDefinition.key,
       })
-      return this.s3Client.send(deleteFileCommand)
+      return this.s3Client.send(deleteFileCommand).catch(() => {})
     })
 
     const promisePoolBucket = new PromisePool(Array.from(this.bucketsToCleanup)).withConcurrency(
@@ -89,7 +89,7 @@ export class S3TestHelper {
       const deleteBucketCommand = new DeleteBucketCommand({
         Bucket: bucket,
       })
-      return this.s3Client.send(deleteBucketCommand)
+      return this.s3Client.send(deleteBucketCommand).catch(() => {})
     })
   }
 }

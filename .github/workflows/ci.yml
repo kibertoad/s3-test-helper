@@ -33,7 +33,7 @@ jobs:
 
       - name: Start Docker
         run: |
-          npm run aws:local:start
+          docker compose up localstack
 
       - name: Run Tests
         run: |
