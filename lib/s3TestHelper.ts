@@ -119,8 +119,10 @@ export class S3TestHelper {
         const deleteBucketCommand = new DeleteBucketCommand({
           Bucket: bucket,
         })
-        return this.s3Client.send(deleteBucketCommand).catch((err) => {
-          this.logger.error(`Error while deleting bucket: ${err.message}`)
+        return this.emptyBucket(bucket).then(() => {
+          return this.s3Client.send(deleteBucketCommand).catch((err) => {
+            this.logger.error(`Error while deleting bucket: ${err.message}`)
+          })
         })
       })
   }

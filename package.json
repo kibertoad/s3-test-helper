@@ -1,6 +1,6 @@
 {
   "name": "s3-test-helper",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "license": "MIT",
   "description": "Test helper for managing and cleaning up your S3 buckets in tests ",
   "maintainers": [
