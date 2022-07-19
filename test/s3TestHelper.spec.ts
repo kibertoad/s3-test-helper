@@ -1,4 +1,5 @@
-import { Logger, S3TestHelper } from '../lib/s3TestHelper'
+import { S3TestHelper } from '../lib/s3TestHelper'
+import type { Logger } from '../lib/s3TestHelper'
 import {
   CreateBucketCommand,
   ListBucketsCommand,
@@ -38,6 +39,7 @@ describe('s3TestHelper', function () {
     const helper = new S3TestHelper(s3Client)
     await helper.createBucket('abc')
     await helper.createBucket('abc')
+    await helper.cleanup()
   })
 
   it('createBucket cleans up after itself', async function () {
@@ -134,5 +136,7 @@ describe('s3TestHelper', function () {
 
     const filesList2 = await s3TestHelper.listBucketFiles('abc')
     expect(filesList2.length).to.eq(0)
+
+    await s3TestHelper.cleanup()
   })
 })
