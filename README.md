@@ -1,5 +1,9 @@
 # s3-test-helper
 
+[![NPM Version][npm-image]][npm-url]
+[![Build Status](https://github.com/kibertoad/s3-test-helper/workflows/ci/badge.svg)](https://github.com/kibertoad/s3-test-helper/actions)
+[![Coverage Status](https://coveralls.io/repos/kibertoad/s3-test-helper/badge.svg?branch=main)](https://coveralls.io/r/kibertoad/s3-test-helper?branch=main)
+
 Test utilities for working with S3 within integration tests
 
 ## Getting Started
@@ -52,3 +56,6 @@ describe('s3TestHelper', function () {
   })
 })
 ```
+
+[npm-image]: https://img.shields.io/npm/v/s3-test-helper.svg
+[npm-url]: https://npmjs.org/package/s3-test-helper
