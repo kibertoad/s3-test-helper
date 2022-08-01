@@ -95,7 +95,8 @@ export class S3TestHelper {
   async listBuckets() {
     const listBucketsCommand = new ListBucketsCommand({})
     const bucketsList = await this.s3Client.send(listBucketsCommand)
-    return bucketsList.Buckets
+    /* istanbul ignore next */
+    return bucketsList.Buckets ?? []
   }
 
   async emptyBucket(bucket: string) {
