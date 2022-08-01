@@ -76,6 +76,8 @@ describe('s3TestHelper', function () {
   })
 
   it('createBucket cleans up after itself even if there are hanging files left', async function () {
+    await s3TestHelper.deleteBucket('abd')
+    await s3TestHelper.deleteBucket('abcd')
     await s3TestHelper.createBucket('abc')
 
     const createObjectCommand = new PutObjectCommand({
@@ -91,6 +93,32 @@ describe('s3TestHelper', function () {
     const responseListBuckets = await s3Client.send(listBucketsCommand)
 
     expect(responseListBuckets.Buckets?.length).to.eq(0)
+  })
+
+  it('files created through helper get cleaned up', async function () {
+    await s3TestHelper.createBucket('abcd')
+    await s3TestHelper.createFile('abcd', 'dummyKey2', { test: 'id' })
+    await s3TestHelper.createFile('abcd', 'dummyKey3', 'abc')
+
+    const filesList = await s3TestHelper.listBucketFiles('abcd')
+    expect(filesList.length).to.eq(2)
+    expect(filesList[0].Key).to.eq('dummyKey2')
+    expect(filesList[1].Key).to.eq('dummyKey3')
+
+    await s3TestHelper.cleanup({
+      deleteBuckets: false,
+    })
+
+    const bucketsList = await s3TestHelper.listBuckets()
+    const filesList2 = await s3TestHelper.listBucketFiles('abcd')
+    expect(bucketsList.length).to.eq(1)
+    expect(filesList2.length).to.eq(0)
+
+    await s3TestHelper.cleanup({
+      deleteBuckets: true,
+    })
+    const bucketsList2 = await s3TestHelper.listBuckets()
+    expect(bucketsList2.length).to.eq(0)
   })
 
   it('registered files get cleaned up', async function () {
