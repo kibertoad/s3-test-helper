@@ -1,6 +1,6 @@
 {
   "name": "s3-test-helper",
-  "version": "1.1.0",
+  "version": "1.2.0",
   "license": "MIT",
   "description": "Test helper for managing and cleaning up your S3 buckets in tests ",
   "maintainers": [
@@ -23,20 +23,23 @@
     "prepublishOnly": "npm run build"
   },
   "dependencies": {
-    "@aws-sdk/client-s3": "^3.131.0",
     "@supercharge/promise-pool": "^2.3.0",
-    "undici": "^5.8.0"
+    "undici": "^5.11.0"
+  },
+  "peerDependencies": {
+    "@aws-sdk/client-s3": "^3.137.0"
   },
   "devDependencies": {
+    "@aws-sdk/client-s3": "^3.185.0",
     "@types/chai": "^4.3.1",
     "@types/mocha": "^10.0.0",
-    "@types/node": "^18.0.6",
-    "@typescript-eslint/eslint-plugin": "^5.30.7",
-    "@typescript-eslint/parser": "^5.30.7",
+    "@types/node": "^18.8.2",
+    "@typescript-eslint/eslint-plugin": "^5.39.0",
+    "@typescript-eslint/parser": "^5.39.0",
     "chai": "^4.3.6",
-    "eslint": "^8.20.0",
+    "eslint": "^8.21.0",
     "eslint-config-prettier": "^8.5.0",
-    "eslint-plugin-mocha": "^10.0.5",
+    "eslint-plugin-mocha": "^10.1.0",
     "eslint-plugin-prettier": "^4.2.1",
     "mocha": "^10.0.0",
     "nyc": "^15.1.0",

@@ -3,7 +3,9 @@ import {
   CreateBucketCommand,
   DeleteBucketCommand,
   DeleteObjectCommand,
+  ListBucketsCommand,
   ListObjectsCommand,
+  PutObjectCommand,
 } from '@aws-sdk/client-s3'
 import { PromisePool } from '@supercharge/promise-pool'
 
@@ -24,6 +26,14 @@ export type S3TestHelperOptions = {
   concurrentCleanupThreads?: number
   logger?: Logger
   bucket?: string
+}
+
+const DEFAULT_OPTIONS: CleanupOptions = {
+  deleteBuckets: true,
+}
+
+export type CleanupOptions = {
+  deleteBuckets: boolean
 }
 
 export class S3TestHelper {
@@ -53,6 +63,19 @@ export class S3TestHelper {
     this.bucketsToCleanup.add(bucket)
   }
 
+  async createFile(bucket: string, key: string, content: string | Uint8Array | Buffer | object) {
+    const createObjectCommand = new PutObjectCommand({
+      Bucket: bucket,
+      Key: key,
+      Body: typeof content === 'object' ? JSON.stringify(content) : content,
+    })
+    await this.s3Client.send(createObjectCommand)
+    this.registerFileForCleanup({
+      bucket,
+      key,
+    })
+  }
+
   async deleteBucket(bucket: string) {
     await this.emptyBucket(bucket)
     const deleteBucketCommand = new DeleteBucketCommand({ Bucket: bucket })
@@ -67,6 +90,13 @@ export class S3TestHelper {
     const listFilesCommand = new ListObjectsCommand({ Bucket: bucket })
     const filesList = await this.s3Client.send(listFilesCommand)
     return filesList.Contents ?? []
+  }
+
+  async listBuckets() {
+    const listBucketsCommand = new ListBucketsCommand({})
+    const bucketsList = await this.s3Client.send(listBucketsCommand)
+    /* istanbul ignore next */
+    return bucketsList.Buckets ?? []
   }
 
   async emptyBucket(bucket: string) {
@@ -100,7 +130,7 @@ export class S3TestHelper {
     })
   }
 
-  async cleanup() {
+  async cleanup(options: CleanupOptions = DEFAULT_OPTIONS) {
     await PromisePool.withConcurrency(this.concurrentCleanupThreads)
       .for(this.filesToCleanup)
       .process((fileDefinition) => {
@@ -116,13 +146,16 @@ export class S3TestHelper {
     await PromisePool.withConcurrency(this.concurrentCleanupThreads)
       .for(Array.from(this.bucketsToCleanup))
       .process((bucket) => {
-        const deleteBucketCommand = new DeleteBucketCommand({
-          Bucket: bucket,
-        })
         return this.emptyBucket(bucket).then(() => {
-          return this.s3Client.send(deleteBucketCommand).catch((err) => {
-            this.logger.error(`Error while deleting bucket: ${err.message}`)
-          })
+          if (options.deleteBuckets) {
+            const deleteBucketCommand = new DeleteBucketCommand({
+              Bucket: bucket,
+            })
+            return this.s3Client.send(deleteBucketCommand).catch((err) => {
+              this.logger.error(`Error while deleting bucket: ${err.message}`)
+            })
+          }
+          return undefined
         })
       })
   }
