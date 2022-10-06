@@ -17,6 +17,7 @@
     "test:coverage": "nyc ts-mocha test/*.ts",
     "test:ci": "npm run lint && npm run test:coverage",
     "lint": "eslint .",
+    "lint:fix": "eslint . --fix",
     "format": "prettier --write .",
     "aws:local:start": "docker compose up -d localstack",
     "aws:local:stop": "docker compose down",

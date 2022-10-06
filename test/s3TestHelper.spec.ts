@@ -2,11 +2,16 @@ import { S3TestHelper } from '../lib/s3TestHelper'
 import type { Logger } from '../lib/s3TestHelper'
 import {
   CreateBucketCommand,
+  GetObjectCommand,
   ListBucketsCommand,
   PutObjectCommand,
   S3Client,
 } from '@aws-sdk/client-s3'
 import { expect } from 'chai'
+import { readFileSync } from 'node:fs'
+import { resolve } from 'node:path'
+import { Readable } from 'node:stream'
+import { readZip } from './streamUtils'
 
 const s3Client = new S3Client({
   endpoint: 'http://s3.localhost.localstack.cloud:4566',
@@ -97,7 +102,7 @@ describe('s3TestHelper', function () {
 
   it('files created through helper get cleaned up', async function () {
     await s3TestHelper.createBucket('abcd')
-    await s3TestHelper.createFile('abcd', 'dummyKey2', { test: 'id' })
+    await s3TestHelper.createFile('abcd', 'dummyKey2', JSON.stringify({ test: 'id' }))
     await s3TestHelper.createFile('abcd', 'dummyKey3', 'abc')
 
     const filesList = await s3TestHelper.listBucketFiles('abcd')
@@ -119,6 +124,29 @@ describe('s3TestHelper', function () {
     })
     const bucketsList2 = await s3TestHelper.listBuckets()
     expect(bucketsList2.length).to.eq(0)
+  })
+
+  it('binary files get created correctly', async function () {
+    await s3TestHelper.createBucket('abcd')
+    const fileContent = readFileSync(resolve(__dirname, './data/amendments.txt.gz'))
+
+    await s3TestHelper.createFile('abcd', 'dummyKey2', fileContent)
+
+    const cmd = new GetObjectCommand({
+      Bucket: 'abcd',
+      Key: 'dummyKey2',
+    })
+
+    const response = await s3Client.send(cmd)
+    if (!(response.Body instanceof Readable)) {
+      throw new Error(`Invalid response`)
+    }
+    const result = await readZip(response.Body)
+    expect(result.length).to.eq(38704)
+
+    await s3TestHelper.cleanup({
+      deleteBuckets: true,
+    })
   })
 
   it('registered files get cleaned up', async function () {
