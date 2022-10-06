@@ -63,11 +63,11 @@ export class S3TestHelper {
     this.bucketsToCleanup.add(bucket)
   }
 
-  async createFile(bucket: string, key: string, content: string | Uint8Array | Buffer | object) {
+  async createFile(bucket: string, key: string, content: string | Uint8Array | Buffer) {
     const createObjectCommand = new PutObjectCommand({
       Bucket: bucket,
       Key: key,
-      Body: typeof content === 'object' ? JSON.stringify(content) : content,
+      Body: content,
     })
     await this.s3Client.send(createObjectCommand)
     this.registerFileForCleanup({
