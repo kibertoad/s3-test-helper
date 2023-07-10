@@ -24,7 +24,7 @@
     "prepublishOnly": "npm run build"
   },
   "dependencies": {
-    "@supercharge/promise-pool": "^2.3.0",
+    "@supercharge/promise-pool": "^3.0.0",
     "undici": "^5.11.0"
   },
   "peerDependencies": {
