@@ -25,7 +25,7 @@
   },
   "dependencies": {
     "@supercharge/promise-pool": "^3.0.0",
-    "undici": "^5.11.0"
+    "undici": "^6.0.1"
   },
   "peerDependencies": {
     "@aws-sdk/client-s3": "^3.137.0"
