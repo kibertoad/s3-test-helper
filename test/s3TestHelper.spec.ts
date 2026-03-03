@@ -35,6 +35,7 @@ class TestLogger implements Logger {
 describe('s3TestHelper', function () {
   let s3TestHelper: S3TestHelper
   let logger: TestLogger
+
   beforeEach(function () {
     logger = new TestLogger()
     s3TestHelper = new S3TestHelper(s3Client, {
